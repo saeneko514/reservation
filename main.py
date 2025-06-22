@@ -37,7 +37,16 @@ def reserve():
     }
 
     res = requests.post(SHEETY_URL, json=reservation, headers=headers)
-    if res.status_code == 201:
+    if res.status_code in [200, 201]:
         return jsonify({"status": "success"})
     else:
-        return jsonify({"status": "error", "detail": res.text}), 400
+        try:
+            return jsonify({
+                "status": "error",
+                "detail": res.json()
+            }), 400
+        except Exception:
+            return jsonify({
+                "status": "error",
+                "detail": res.text
+            }), 400
