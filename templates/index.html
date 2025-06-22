@@ -1,57 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>来店予約</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <title>予約一覧</title>
+  <style>
+    .slot {
+      display: inline-block;
+      width: 80px;
+      margin: 4px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: center;
+      cursor: pointer;
+    }
+    .booked {
+      background-color: #f88;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
-  <h2>来店予約フォーム</h2>
-  <form id="form">
-    <input type="text" id="name" placeholder="名前" required><br><br>
-    <input type="date" id="date" required><br><br>
-    <input type="time" id="time" required><br><br>
-    <button type="submit">予約する</button>
-  </form>
+  <h2>予約一覧（30分単位）</h2>
+  <input type="date" id="datePicker" />
+  <div id="slots"></div>
 
   <script>
-    const API_URL = "https://reservation-zpmg.onrender.com/reserve";
+    const API_URL = "/reservations";
 
-    async function init() {
-      await liff.init({ liffId: "2007620165-P4vJlaxa" });
-      if (!liff.isLoggedIn()) liff.login();
+    function generateTimeSlots() {
+      const slots = [];
+      for (let h = 9; h <= 18; h++) { // 9:00〜18:00まで
+        slots.push(`${String(h).padStart(2,'0')}:00`);
+        slots.push(`${String(h).padStart(2,'0')}:30`);
+      }
+      return slots;
+    }
 
-      const profile = await liff.getProfile();
-      const userId = liff.getContext().userId;
+    async function loadReservations(date) {
+      const res = await fetch(`${API_URL}?date=${date}`);
+      const data = await res.json();
+      if(data.status !== "success") {
+        alert("予約一覧の取得に失敗しました");
+        return;
+      }
+      return data.reservations;
+    }
 
-      document.getElementById("form").addEventListener("submit", async (e) => {
-        e.preventDefault();
+    function renderSlots(reservations) {
+      const slotsDiv = document.getElementById("slots");
+      slotsDiv.innerHTML = "";
+      const slots = generateTimeSlots();
 
-        const payload = {
-          userId: userId,
-          displayName: profile.displayName,
-          name: document.getElementById("name").value,
-          date: document.getElementById("date").value,
-          time: document.getElementById("time").value
-        };
+      slots.forEach(time => {
+        const slotDiv = document.createElement("div");
+        slotDiv.className = "slot";
+        slotDiv.textContent = time;
 
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await res.json();
-        if (result.status === "success") {
-          alert("予約が完了しました！");
-          liff.closeWindow();
+        const isBooked = reservations.some(r => r.time === time);
+        if(isBooked) {
+          slotDiv.classList.add("booked");
+          slotDiv.title = "予約済み";
         } else {
-          alert("エラー：" + result.detail);
+          slotDiv.title = "空き";
+          // ここでクリックイベントを追加して予約フォームに反映も可能
         }
+
+        slotsDiv.appendChild(slotDiv);
       });
     }
 
-    init();
+    document.getElementById("datePicker").addEventListener("change", async (e) => {
+      const date = e.target.value;
+      if(!date) return;
+      const reservations = await loadReservations(date);
+      renderSlots(reservations);
+    });
   </script>
 </body>
 </html>
