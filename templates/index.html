@@ -16,19 +16,33 @@
       background-color: #f88;
       cursor: not-allowed;
     }
+    .selected {
+      background-color: #8f8;
+    }
   </style>
 </head>
 <body>
   <h2>予約一覧（30分単位）</h2>
   <input type="date" id="datePicker" />
+  
   <div id="slots"></div>
 
+  <h3>予約フォーム</h3>
+  <form id="form">
+    <input type="text" id="name" placeholder="名前" required><br><br>
+    <input type="date" id="formDate" required><br><br>
+    <input type="time" id="formTime" required readonly><br><br>
+    <button type="submit">予約する</button>
+  </form>
+
   <script>
-    const API_URL = "/reservations";
+    const API_URL = "/reserve";
+
+    let selectedSlot = null;
 
     function generateTimeSlots() {
       const slots = [];
-      for (let h = 9; h <= 18; h++) { // 9:00〜18:00まで
+      for (let h = 9; h <= 18; h++) {
         slots.push(`${String(h).padStart(2,'0')}:00`);
         slots.push(`${String(h).padStart(2,'0')}:30`);
       }
@@ -36,16 +50,17 @@
     }
 
     async function loadReservations(date) {
-      const res = await fetch(`${API_URL}?date=${date}`);
+      if (!date) return [];
+      const res = await fetch(`/reservations?date=${date}`);
       const data = await res.json();
       if(data.status !== "success") {
         alert("予約一覧の取得に失敗しました");
-        return;
+        return [];
       }
       return data.reservations;
     }
 
-    function renderSlots(reservations) {
+    function renderSlots(reservations, date) {
       const slotsDiv = document.getElementById("slots");
       slotsDiv.innerHTML = "";
       const slots = generateTimeSlots();
@@ -61,7 +76,17 @@
           slotDiv.title = "予約済み";
         } else {
           slotDiv.title = "空き";
-          // ここでクリックイベントを追加して予約フォームに反映も可能
+          slotDiv.addEventListener("click", () => {
+            if(selectedSlot) {
+              selectedSlot.classList.remove("selected");
+            }
+            selectedSlot = slotDiv;
+            slotDiv.classList.add("selected");
+
+            // 予約フォームに反映
+            document.getElementById("formDate").value = date;
+            document.getElementById("formTime").value = time;
+          });
         }
 
         slotsDiv.appendChild(slotDiv);
@@ -71,8 +96,49 @@
     document.getElementById("datePicker").addEventListener("change", async (e) => {
       const date = e.target.value;
       if(!date) return;
+      selectedSlot = null;
+      document.getElementById("formDate").value = "";
+      document.getElementById("formTime").value = "";
       const reservations = await loadReservations(date);
-      renderSlots(reservations);
+      renderSlots(reservations, date);
+    });
+
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const date = document.getElementById("formDate").value;
+      const time = document.getElementById("formTime").value;
+
+      if(!date || !time) {
+        alert("日付と時間を選択してください");
+        return;
+      }
+
+      const payload = {
+        userId: "testUserId",  // 実際はLIFFなどで取得してください
+        displayName: name,
+        name,
+        date,
+        time
+      };
+
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      if(result.status === "success") {
+        alert("予約が完了しました！");
+        // 予約後リセットなど
+        selectedSlot.classList.remove("selected");
+        selectedSlot = null;
+        document.getElementById("form").reset();
+        document.getElementById("slots").innerHTML = "";
+      } else {
+        alert("エラー：" + result.detail);
+      }
     });
   </script>
 </body>
