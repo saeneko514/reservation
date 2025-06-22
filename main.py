@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 
 SHEETY_TOKEN = os.environ.get("SHEETY_TOKEN")
-SHEETY_URL = f"https://api.sheety.co/{SHEETY_TOKEN}/reservations/reservations"
+SHEETY_URL = "https://api.sheety.co/91a51e4efb03bbce4a21258eebc3ae12/reservations/reservations"
 
 @app.route("/reserve", methods=["POST"])
 def reserve():
