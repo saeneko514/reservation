@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>スタッフ選択と空き枠</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8" />
+  <title>スタッフ選択と空き枠予約</title>
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <div class="container">
@@ -12,20 +12,19 @@
       <option value="">-- スタッフ選択 --</option>
       <option value="A">A</option>
       <option value="B">B</option>
-      option value="C">C</option>
+      <option value="C">C</option>
     </select>
 
-    <div id="slotContainer" style="display:none">
+    <div id="slotContainer" style="display:none;">
       <h2 id="selectedStaff"></h2>
       <ul id="slotList" class="slot-list"></ul>
     </div>
 
-    <!-- LIFF情報をフォームに使うためのテンプレ -->
-    <form id="hiddenForm" method="POST" action="/book" style="display:none">
-      <input type="hidden" name="staff">
-      <input type="hidden" name="datetime">
-      <input type="hidden" name="userName">
-      <input type="hidden" name="userId">
+    <form id="hiddenForm" method="POST" action="/book" style="display:none;">
+      <input type="hidden" name="staff" />
+      <input type="hidden" name="datetime" />
+      <input type="hidden" name="userName" />
+      <input type="hidden" name="userId" />
     </form>
   </div>
 
@@ -34,20 +33,27 @@
     let userName = "";
     let userId = "";
 
-    liff.init({ liffId: "2007657386-9m3VArgZ" })
+    liff.init({ liffId: "YOUR_LIFF_ID" })
       .then(() => Promise.all([liff.getProfile(), liff.getDecodedIDToken()]))
       .then(([profile, decoded]) => {
         userName = profile.displayName;
         userId = decoded.sub;
+      })
+      .catch(err => {
+        console.error("LIFF初期化エラー:", err);
+        alert("LINEログイン情報の取得に失敗しました。再読み込みしてください。");
       });
 
-    document.getElementById("staffSelect").addEventListener("change", function() {
+    document.getElementById("staffSelect").addEventListener("change", function () {
       const staff = this.value;
-      if (!staff) return;
+      if (!staff) {
+        document.getElementById("slotContainer").style.display = "none";
+        return;
+      }
 
       fetch(`/api/available_slots?staff=${encodeURIComponent(staff)}`)
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           const slots = data.slots;
           const slotList = document.getElementById("slotList");
           slotList.innerHTML = "";
@@ -57,7 +63,7 @@
           if (slots.length === 0) {
             slotList.innerHTML = "<li>現在、空き枠はありません。</li>";
           } else {
-            slots.forEach(slot => {
+            slots.forEach((slot) => {
               const li = document.createElement("li");
               const btn = document.createElement("button");
               btn.textContent = slot;
@@ -68,6 +74,9 @@
               slotList.appendChild(li);
             });
           }
+        })
+        .catch(() => {
+          alert("空き枠の取得に失敗しました。");
         });
     });
 
