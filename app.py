@@ -100,11 +100,6 @@ def book():
                     patch_url = f"{SCHEDULE_ENDPOINT}/{schedule_id}"
                     requests.patch(patch_url, json=update_data)
                     break
-
-        # LINEに通知
-        message_text = f"{user_name}さん、{staff}との予約が完了しました！\n日時：{datetime_str}"
-        send_line_message(user_id, message_text)
-
         return redirect(f"/confirm_booking?staff={staff}&datetime={datetime_str}")
     else:
         return f"予約に失敗しました（{response.status_code}）: {response.text}"
