@@ -13,14 +13,27 @@ def index():
     return render_template("select_staff.html")
 
 @app.route("/api/available_slots")
-def available_slots():
+def api_available_slots():
     staff = request.args.get("staff")
     response = requests.get(SCHEDULE_ENDPOINT)
+
     if response.status_code == 200:
         schedules = response.json().get("schedules", [])
-        available = [f"{s['date']} {s['time'][:5]}" for s in schedules if s['staff'] == staff and s['status'] == "○"]
-        return jsonify({"slots": available})
-    return jsonify({"slots": []})
+        slots = []
+
+        for s in schedules:
+            if s["staff"] == staff and s["status"] == "○":
+                try:
+                    # "14:00:00" → "14:00"
+                    time_obj = datetime.datetime.strptime(s["time"], "%H:%M:%S")
+                    time_str = time_obj.strftime("%H:%M")
+                except:
+                    time_str = s["time"]
+                slots.append(f"{s['date']} {time_str}")
+        
+        return jsonify({"slots": slots})
+    else:
+        return jsonify({"slots": []})
 
 @app.route("/book", methods=["POST"])
 def book():
