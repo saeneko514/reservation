@@ -19,7 +19,7 @@ def reserve():
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     # 1. scheduleシートから該当スロットを検索してID取得
-    res = requests.get(SHEETY_SCHEDULE_URL)
+    res = requests.get(SCHEDULE_ENDPOINT)
     schedule_data = res.json()['schedule']
     schedule_id = None
     for row in schedule_data:
