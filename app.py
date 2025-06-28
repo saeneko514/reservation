@@ -11,7 +11,7 @@ SCHEDULE_ENDPOINT = f"https://api.sheety.co/{SHEETY_ID}/カウンセリング予
 
 @app.route('/')
 def index():
-    return render_template('select_staff_and_slots.html')
+    return render_template('select_staff.html')
 
 @app.route('/api/available_slots')
 def available_slots():
