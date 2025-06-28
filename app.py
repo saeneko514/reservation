@@ -30,7 +30,7 @@ def reserve():
         return "該当スケジュールが見つかりません", 400
 
     # 2. scheduleのstatusを"booked"に更新
-    update_url = f"{SHEETY_SCHEDULE_URL}/{schedule_id}"
+    update_url = f"{SCHEDULE_ENDPOINT}/{schedule_id}"
     requests.put(update_url, json={"schedule": {"status": "booked"}})
 
     # 3. reservationsシートに予約情報を追加
@@ -44,7 +44,7 @@ def reserve():
             "registrationDate": now
         }
     }
-    requests.post(SHEETY_RESERVATION_URL, json=reservation_data)
+    requests.post(RESERVATION_ENDPOINT, json=reservation_data)
 
     # 4. 予約完了メッセージなど（必要なら）
 
