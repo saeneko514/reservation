@@ -1,89 +1,80 @@
-from flask import Flask, render_template, request, redirect, jsonify
+from flask import Flask, request, render_template, redirect, jsonify
 import requests
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 
-# APIエンドポイント
-RESERVATION_ENDPOINT = "https://api.sheety.co/xxx/reservations"
-SCHEDULE_ENDPOINT = "https://api.sheety.co/xxx/schedules"
+SHEETY_ID = os.environ.get("SHEETY_ID")
+RESERVATION_ENDPOINT = f"https://api.sheety.co/{SHEETY_ID}/カウンセリング予約/reservations"
+SCHEDULE_ENDPOINT = f"https://api.sheety.co/{SHEETY_ID}/カウンセリング予約/schedules"
 
-@app.route("/")
+@app.route('/')
 def index():
-    return render_template("select_staff.html")
+    return render_template('select_staff_and_slots.html')
 
-@app.route("/api/available_slots")
-def api_available_slots():
-    staff = request.args.get("staff")
-    response = requests.get(SCHEDULE_ENDPOINT)
-
-    if response.status_code == 200:
-        schedules = response.json().get("schedules", [])
-        slots = []
-
-        for s in schedules:
-            if s["staff"] == staff and s["status"] == "○":
-                try:
-                    # "14:00:00" → "14:00"
-                    time_obj = datetime.datetime.strptime(s["time"], "%H:%M:%S")
-                    time_str = time_obj.strftime("%H:%M")
-                except:
-                    time_str = s["time"]
-                slots.append(f"{s['date']} {time_str}")
-        
-        return jsonify({"slots": slots})
-    else:
+@app.route('/api/available_slots')
+def available_slots():
+    staff = request.args.get('staff')
+    if not staff:
         return jsonify({"slots": []})
 
-@app.route("/book", methods=["POST"])
-def book():
-    staff = request.form["staff"]
-    datetime_str = request.form["datetime"]
-    user_name = request.form.get("userName", "")
-    user_id = request.form.get("userId", "")
+    response = requests.get(SCHEDULE_ENDPOINT)
+    if response.status_code != 200:
+        return jsonify({"slots": []})
 
-    reservation_data = {
+    all_schedules = response.json().get("schedules", [])
+    filtered_slots = []
+    for entry in all_schedules:
+        if entry["staff"] == staff and entry["status"] == "〇":
+            slot = f"{entry['date']} {entry['time']}"
+            filtered_slots.append(slot)
+    return jsonify({"slots": filtered_slots})
+
+@app.route('/book', methods=['POST'])
+def book():
+    staff = request.form.get('staff')
+    datetime_str = request.form.get('datetime')
+    user_name = request.form.get('userName', '名無しユーザー')
+    user_id = request.form.get('userId', 'unknown_user')
+    registration_date = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    data = {
         "reservation": {
             "userId": user_id,
             "name": user_name,
             "staff": staff,
             "date": datetime_str,
-            "registration_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "registration_date": registration_date
         }
     }
 
-    response = requests.post(RESERVATION_ENDPOINT, json=reservation_data)
-
-    if response.status_code in [200, 201]:
-        date_part, time_part = datetime_str.split(' ')
-        time_part = datetime.strptime(time_part, "%H:%M").strftime("%H:%M")
-
-        schedule_response = requests.get(SCHEDULE_ENDPOINT)
-        if schedule_response.status_code == 200:
-            schedules = schedule_response.json().get("schedules", [])
-            for s in schedules:
-                try:
-                    sheet_time = datetime.strptime(s["time"], "%H:%M:%S").strftime("%H:%M")
-                except ValueError:
-                    sheet_time = s["time"]
-
-                if s["staff"] == staff and s["date"] == date_part and sheet_time == time_part:
-                    schedule_id = s["id"]
-                    update_data = {"schedule": {"status": "×"}}
-                    patch_url = f"{SCHEDULE_ENDPOINT}/{schedule_id}"
-                    patch_response = requests.patch(patch_url, json=update_data)
-                    print("スケジュール更新結果:", patch_response.status_code, patch_response.text)
-                    break
-
-        return redirect(f"/confirm_booking?staff={staff}&datetime={datetime_str}")
-    else:
+    # 予約登録
+    response = requests.post(RESERVATION_ENDPOINT, json=data)
+    if response.status_code not in [200, 201]:
         return f"予約に失敗しました（{response.status_code}）: {response.text}"
 
-@app.route("/confirm_booking")
-def confirm_booking():
-    staff = request.args.get("staff")
-    datetime_str = request.args.get("datetime")
-    return render_template("confirm_booking.html", staff=staff, datetime=datetime_str)
+    # 予約した枠のstatusを「×」に更新
+    date_part, time_part = datetime_str.split(' ')
+    schedule_response = requests.get(SCHEDULE_ENDPOINT)
+    if schedule_response.status_code == 200:
+        schedules = schedule_response.json().get("schedules", [])
+        for s in schedules:
+            if s["staff"] == staff and s["date"] == date_part and s["time"] == time_part:
+                schedule_id = s["id"]
+                update_data = {"schedule": {"status": "×"}}
+                patch_url = f"{SCHEDULE_ENDPOINT}/{schedule_id}"
+                requests.patch(patch_url, json=update_data)
+                break
 
-if __name__ == "__main__":
+    # 予約完了画面へリダイレクト
+    return redirect(f'/confirm_booking?staff={staff}&datetime={datetime_str}')
+
+@app.route('/confirm_booking')
+def confirm_booking():
+    staff = request.args.get('staff')
+    datetime_str = request.args.get('datetime')
+    return render_template('confirm_booking.html', staff=staff, datetime=datetime_str)
+
+if __name__ == '__main__':
     app.run(debug=True)
