@@ -71,25 +71,34 @@ def book():
             "registration_date": registration_date
         }
     }
+
+    
+    # 予約登録
     response = requests.post(RESERVATION_ENDPOINT, json=data)
-
-    # 予約成功ならスケジュールの status を × に更新
-    if response.status_code in [200, 201]:
-        date_part, time_part = datetime_str.split(' ')
-        schedule_response = requests.get(SCHEDULE_ENDPOINT)
-        if schedule_response.status_code == 200:
-            schedules = schedule_response.json().get("schedules", [])
-            for s in schedules:
-                if s["staff"] == staff and s["date"] == date_part and s["time"] == time_part:
-                    schedule_id = s["id"]
-                    update_data = {"schedule": {"status": "×"}}
-                    patch_url = f"{SCHEDULE_ENDPOINT}/{schedule_id}"
-                    requests.patch(patch_url, json=update_data)
-                    break
-
-        return redirect('/')
-    else:
+    if response.status_code not in [200, 201]:
         return f"予約に失敗しました（{response.status_code}）: {response.text}"
+
+    # 予約した枠のstatusを「×」に更新
+    date_part, time_part = datetime_str.split(' ')
+    schedule_response = requests.get(SCHEDULE_ENDPOINT)
+    if schedule_response.status_code == 200:
+        schedules = schedule_response.json().get("schedules", [])
+        for s in schedules:
+            if s["staff"] == staff and s["date"] == date_part and s["time"] == time_part:
+                schedule_id = s["id"]
+                update_data = {"schedule": {"status": "×"}}
+                patch_url = f"{SCHEDULE_ENDPOINT}/{schedule_id}"
+                requests.patch(patch_url, json=update_data)
+                break
+
+    # 予約完了画面へリダイレクト
+    return redirect(f'/confirm_booking?staff={staff}&datetime={datetime_str}')
+
+@app.route('/confirm_booking')
+def confirm_booking():
+    staff = request.args.get('staff')
+    datetime_str = request.args.get('datetime')
+    return render_template('confirm_booking.html', staff=staff, datetime=datetime_str)
 
 if __name__ == '__main__':
     app.run(debug=True)
