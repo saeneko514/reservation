@@ -5,7 +5,6 @@ import os
 
 app = Flask(__name__)
 
-# 環境変数 SHEETY_ID に自分のSheetyプロジェクトIDをセットしてください
 SHEETY_ID = os.environ.get("SHEETY_ID")
 RESERVATION_ENDPOINT = f"https://api.sheety.co/{SHEETY_ID}/カウンセリング予約/reservations"
 SCHEDULE_ENDPOINT = f"https://api.sheety.co/{SHEETY_ID}/カウンセリング予約/schedules"
@@ -28,9 +27,7 @@ def available_slots():
     all_schedules = response.json().get("schedules", [])
     filtered_slots = []
     for entry in all_schedules:
-        # statusが「〇」か「○」のどちらかを許容（環境によって違うため）
         if entry["staff"] == staff and entry["status"] in ["〇", "○"]:
-            # 時間は先頭5文字（HH:MM）だけ使う
             time_short = entry['time'][:5]
             slot = f"{entry['date']} {time_short}"
             filtered_slots.append(slot)
