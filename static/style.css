@@ -1,71 +1,68 @@
+/* ベース設定 */
 body {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  background-color: #f5f8fa;
   margin: 0;
   padding: 0;
+  font-family: "Helvetica Neue", sans-serif;
+  background-color: #f9f9f9;
   color: #333;
 }
 
 .container {
-  max-width: 480px;
-  margin: 40px auto;
+  max-width: 600px;
+  margin: 0 auto;
   padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-h1, h2 {
-  color: #2c3e50;
-  margin-bottom: 20px;
+h1 {
   text-align: center;
+  font-size: 24px;
+  margin-bottom: 24px;
+  color: #222;
 }
 
-select {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  margin-bottom: 30px;
-  box-sizing: border-box;
+/* カードリスト */
+.card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
 }
 
-.slot-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.slot-list li {
-  margin-bottom: 12px;
-}
-
-.slot-list button {
-  width: 100%;
-  padding: 12px 0;
-  font-size: 16px;
-  background-color: #00bcd4;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.slot-list button:hover {
-  background-color: #0097a7;
-}
-
-.back-button {
-  display: inline-block;
-  margin-top: 25px;
-  color: #00bcd4;
+/* カード */
+.card {
+  display: block;
+  width: 160px;
+  padding: 16px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  text-align: center;
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
+  color: #333;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.back-button:hover {
-  color: #007c91;
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card img {
+  width: 100%;
+  height: auto;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.card p {
+  font-size: 16px;
+  margin: 0;
+  font-weight: bold;
+}
+
+/* スマホ対応 */
+@media screen and (max-width: 480px) {
+  .card {
+    width: 100%;
+  }
 }
