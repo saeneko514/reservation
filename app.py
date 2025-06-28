@@ -10,7 +10,7 @@ SCHEDULE_ENDPOINT = "https://api.sheety.co/xxx/schedules"
 
 @app.route("/")
 def index():
-    return render_template("select_staff_and_slots.html")
+    return render_template("select_staff.html")
 
 @app.route("/api/available_slots")
 def available_slots():
