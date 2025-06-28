@@ -2,62 +2,54 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>{{ staff }}さんの予約スケジュール</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ staff }}の空きスケジュール</title>
   <style>
-    body { font-family: sans-serif; background: #f8f8f8; margin: 0; padding: 20px; }
-    .container { max-width: 500px; margin: auto; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .staff-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-    .staff-photo { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
-    .schedule-day { margin-bottom: 16px; }
-    h2 { color: #444; font-size: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 10px; text-align: center; font-size: 14px; }
-    th { background: #e0f0ff; }
-    td.available button {
-      background: #4fc3f7; color: white; border: none; border-radius: 20px;
-      padding: 6px 12px; cursor: pointer;
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+    th { background-color: #f0f8ff; }
+    button {
+      background-color: #4fc3f7;
+      border: none;
+      border-radius: 5px;
+      padding: 4px 8px;
+      color: white;
+      cursor: pointer;
     }
-    td.booked { color: #aaa; }
+    .booked { color: #aaa; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="staff-header">
-      <img src="/static/yamada.jpg" class="staff-photo" alt="staff">
-      <div>
-        <h2>{{ staff }}さんの予約スケジュール</h2>
-        <p>お好きな時間をお選びください</p>
-      </div>
-    </div>
-
-    {% for date, slots in schedule_by_day.items() %}
-    <div class="schedule-day">
-      <h3>{{ date }}</h3>
-      <table>
-        <tr>
-          <th>時間</th><th>予約</th>
-        </tr>
-        {% for slot in slots %}
-        <tr>
-          <td>{{ slot.time }}</td>
-          {% if slot.status == 'available' %}
-            <td class="available">
-              <form action="/reserve" method="POST">
-                <input type="hidden" name="staff" value="{{ staff }}">
-                <input type="hidden" name="date" value="{{ date }}">
-                <input type="hidden" name="time" value="{{ slot.time }}">
-                <button type="submit">〇</button>
-              </form>
-            </td>
+  <h2>{{ staff }}の空き状況</h2>
+  <table>
+    <tr>
+      <th>時間</th>
+      {% for date in dates %}
+        <th>{{ date[5:] }}</th>  {# 07-01 の形式にする #}
+      {% endfor %}
+    </tr>
+    {% for time, day_row in table.items() %}
+    <tr>
+      <td>{{ time }}</td>
+      {% for date in dates %}
+        <td>
+          {% if day_row[date] == 'available' %}
+          <form method="POST" action="/reserve">
+            <input type="hidden" name="staff" value="{{ staff }}">
+            <input type="hidden" name="date" value="{{ date }}">
+            <input type="hidden" name="time" value="{{ time }}">
+            <input type="hidden" name="userId" value="abc123">
+            <input type="hidden" name="name" value="山下さえこ">
+            <button type="submit">〇</button>
+          </form>
+          {% elif day_row[date] == 'booked' %}
+            <span class="booked">×</span>
           {% else %}
-            <td class="booked">×</td>
+            -
           {% endif %}
-        </tr>
-        {% endfor %}
-      </table>
-    </div>
+        </td>
+      {% endfor %}
+    </tr>
     {% endfor %}
-  </div>
+  </table>
 </body>
 </html>
