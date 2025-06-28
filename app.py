@@ -34,7 +34,7 @@ def send_line_message(user_id, message_text):
 
 @app.route('/')
 def index():
-    return render_template('select_staff_and_slots.html')  # 1画面完結版
+    return render_template('select_staff.html')  # 1画面完結版
 
 @app.route('/api/available_slots')
 def api_available_slots():
