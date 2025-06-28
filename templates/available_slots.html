@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>{{ staff }}の空き枠</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>{{ staff }}の予約可能時間</h1>
+    {% if slots %}
+      <ul class="slot-list">
+        {% for slot in slots %}
+          <li>
+            <form method="POST" action="/book">
+              <input type="hidden" name="staff" value="{{ staff }}">
+              <input type="hidden" name="datetime" value="{{ slot }}">
+              <input type="hidden" id="userNameInput" name="userName" value="">
+              <input type="hidden" id="userIdInput" name="userId" value="">
+              <button type="submit">{{ slot }}</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>現在、空き枠はありません。</p>
+    {% endif %}
+    <a href="/" class="back-button">← 戻る</a>
+  </div>
+
+  <!-- LIFFスクリプト -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+      liff.init({ liffId: "YOUR_LIFF_ID" })  // ← ご自身のLIFF ID に変更
+        .then(() => Promise.all([liff.getProfile(), liff.getDecodedIDToken()]))
+        .then(([profile, decoded]) => {
+          // 名前とuserIdをフォームにセット
+          document.querySelectorAll("#userNameInput").forEach(input => {
+            input.value = profile.displayName;
+          });
+          document.querySelectorAll("#userIdInput").forEach(input => {
+            input.value = decoded.sub;
+          });
+        })
+        .catch(console.error);
+    </script>
+</body>
+</html>
