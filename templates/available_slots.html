@@ -12,7 +12,7 @@
       <ul class="slot-list">
         {% for slot in slots %}
           <li>
-            <form method="POST" action="/book">
+            <form method="POST" action="/book" style="display:none">
               <input type="hidden" name="staff" value="{{ staff }}">
               <input type="hidden" name="datetime" value="{{ slot }}">
               <input type="hidden" class="userNameInput" name="userName" value="">
@@ -28,19 +28,28 @@
     <a href="/" class="back-button">← 戻る</a>
   </div>
 
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script>
-    liff.init({ liffId: "2007657386-9m3VArgZ" })
-      .then(() => Promise.all([liff.getProfile(), liff.getDecodedIDToken()]))
-      .then(([profile, decoded]) => {
-        document.querySelectorAll(".userNameInput").forEach(input => {
-          input.value = profile.displayName;
-        });
-        document.querySelectorAll(".userIdInput").forEach(input => {
-          input.value = decoded.sub;
-        });
-      })
-      .catch(console.error);
-  </script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+  liff.init({ liffId: "2007657386-9m3VArgZ" })
+    .then(() => Promise.all([liff.getProfile(), liff.getDecodedIDToken()]))
+    .then(([profile, decoded]) => {
+      // ユーザー情報を各フォームに入力
+      document.querySelectorAll(".userNameInput").forEach(input => {
+        input.value = profile.displayName;
+      });
+      document.querySelectorAll(".userIdInput").forEach(input => {
+        input.value = decoded.sub;
+      });
+
+      // ← この位置が重要！ LIFF初期化後に表示
+      document.querySelectorAll("form").forEach(form => {
+        form.style.display = "block";
+      });
+    })
+    .catch(err => {
+      console.error("LIFFエラー:", err);
+      alert("LINEログイン情報の取得に失敗しました。再読み込みしてください。");
+    });
+</script>
 </body>
 </html>
