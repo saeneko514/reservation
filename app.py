@@ -43,19 +43,23 @@ def index():
 def select_staff():
     return render_template('select_staff.html')
 
-@app.route('/available_slots')
-def available_slots():
+@app.route('/api/available_slots')
+def api_available_slots():
     staff = request.args.get('staff')
     response = requests.get(SCHEDULE_ENDPOINT)
     if response.status_code != 200:
-        return f"スケジュールの取得に失敗しました（{response.status_code}）"
+        return {"slots": []}, 500
+
     all_schedules = response.json().get("schedules", [])
     filtered_slots = []
+
     for entry in all_schedules:
         if entry["staff"] == staff and entry["status"] == "○":
             datetime_str = f"{entry['date']} {entry['time']}"
             filtered_slots.append(datetime_str)
-    return render_template('available_slots.html', staff=staff, slots=filtered_slots)
+
+    return {"slots": filtered_slots}
+    
 
 @app.route('/confirm_booking')
 def confirm_booking():
