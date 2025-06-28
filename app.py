@@ -84,7 +84,7 @@ def book():
     response = requests.post(RESERVATION_ENDPOINT, json=data)
 
     # status を × に更新
-    if response.status_code == 201:
+    if response.status_code in [200, 201]:
         date_part, time_part = datetime_str.split(' ')
         schedule_response = requests.get(SCHEDULE_ENDPOINT)
         if schedule_response.status_code == 200:
