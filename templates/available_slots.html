@@ -15,8 +15,8 @@
             <form method="POST" action="/book">
               <input type="hidden" name="staff" value="{{ staff }}">
               <input type="hidden" name="datetime" value="{{ slot }}">
-              <input type="hidden" id="userNameInput" name="userName" value="">
-              <input type="hidden" id="userIdInput" name="userId" value="">
+              <input type="hidden" class="userNameInput" name="userName" value="">
+              <input type="hidden" class="userIdInput" name="userId" value="">
               <button type="submit">{{ slot }}</button>
             </form>
           </li>
@@ -28,21 +28,19 @@
     <a href="/" class="back-button">← 戻る</a>
   </div>
 
-  <!-- LIFFスクリプト -->
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script>
-      liff.init({ liffId: "YOUR_LIFF_ID" })  // ← ご自身のLIFF ID に変更
-        .then(() => Promise.all([liff.getProfile(), liff.getDecodedIDToken()]))
-        .then(([profile, decoded]) => {
-          // 名前とuserIdをフォームにセット
-          document.querySelectorAll("#userNameInput").forEach(input => {
-            input.value = profile.displayName;
-          });
-          document.querySelectorAll("#userIdInput").forEach(input => {
-            input.value = decoded.sub;
-          });
-        })
-        .catch(console.error);
-    </script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+    liff.init({ liffId: "YOUR_LIFF_ID" })  // ← ご自身のLIFF ID に差し替えてください
+      .then(() => Promise.all([liff.getProfile(), liff.getDecodedIDToken()]))
+      .then(([profile, decoded]) => {
+        document.querySelectorAll(".userNameInput").forEach(input => {
+          input.value = profile.displayName;
+        });
+        document.querySelectorAll(".userIdInput").forEach(input => {
+          input.value = decoded.sub;
+        });
+      })
+      .catch(console.error);
+  </script>
 </body>
 </html>
