@@ -1,19 +1,16 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 import requests
 from datetime import datetime
 import os
 
 app = Flask(__name__)
 
-# 環境変数からShettyやLINEの設定を取得
 SHEETY_ID = os.environ.get("SHEETY_ID")
 CHANNEL_ACCESS_TOKEN = os.environ.get("CHANNEL_ACCESS_TOKEN")
 
-# Sheetyのエンドポイント
 RESERVATION_ENDPOINT = f"https://api.sheety.co/{SHEETY_ID}/カウンセリング予約/reservations"
 SCHEDULE_ENDPOINT = f"https://api.sheety.co/{SHEETY_ID}/カウンセリング予約/schedules"
 
-# LINEメッセージ送信関数
 def send_line_message(user_id, message_text):
     headers = {
         "Authorization": f"Bearer {CHANNEL_ACCESS_TOKEN}",
@@ -37,18 +34,14 @@ def send_line_message(user_id, message_text):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
-
-@app.route('/select_staff')
-def select_staff():
-    return render_template('select_staff.html')
+    return render_template('select_staff_and_slots.html')  # 1画面完結版
 
 @app.route('/api/available_slots')
 def api_available_slots():
     staff = request.args.get('staff')
     response = requests.get(SCHEDULE_ENDPOINT)
     if response.status_code != 200:
-        return {"slots": []}, 500
+        return jsonify({"slots": []}), 500
 
     all_schedules = response.json().get("schedules", [])
     filtered_slots = []
@@ -58,14 +51,7 @@ def api_available_slots():
             datetime_str = f"{entry['date']} {entry['time']}"
             filtered_slots.append(datetime_str)
 
-    return {"slots": filtered_slots}
-    
-
-@app.route('/confirm_booking')
-def confirm_booking():
-    staff = request.args.get('staff')
-    datetime_str = request.args.get('datetime')
-    return render_template('confirm_booking.html', staff=staff, datetime=datetime_str)
+    return jsonify({"slots": filtered_slots})
 
 @app.route('/book', methods=['POST'])
 def book():
@@ -75,7 +61,7 @@ def book():
     user_id = request.form.get('userId', 'unknown_user')
     registration_date = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    # スプレッドシートに予約を記録
+    # 予約記録
     data = {
         "reservation": {
             "userId": user_id,
@@ -87,7 +73,7 @@ def book():
     }
     response = requests.post(RESERVATION_ENDPOINT, json=data)
 
-    # status を × に更新
+    # 予約成功ならスケジュールの status を × に更新
     if response.status_code in [200, 201]:
         date_part, time_part = datetime_str.split(' ')
         schedule_response = requests.get(SCHEDULE_ENDPOINT)
@@ -100,7 +86,8 @@ def book():
                     patch_url = f"{SCHEDULE_ENDPOINT}/{schedule_id}"
                     requests.patch(patch_url, json=update_data)
                     break
-        return redirect(f"/confirm_booking?staff={staff}&datetime={datetime_str}")
+
+        return redirect('/')
     else:
         return f"予約に失敗しました（{response.status_code}）: {response.text}"
 
