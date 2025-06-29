@@ -9,6 +9,37 @@ SHEETY_ID = os.environ.get("SHEETY_ID")
 RESERVATION_ENDPOINT = f"https://api.sheety.co/{SHEETY_ID}/カウンセリング予約/reservations"
 SCHEDULE_ENDPOINT = f"https://api.sheety.co/{SHEETY_ID}/カウンセリング予約/schedule"
 
+@app.route('/')
+def index():
+    return render_template('index.html')  # トップ画面用のテンプレート
+
+
+@app.route('/schedule')
+def schedule():
+    staff = request.args.get('staff')
+    res = requests.get(SCHEDULE_ENDPOINT)
+    data = res.json()['schedule']
+
+    # staffで絞り込み
+    filtered = [r for r in data if r['staff'] == staff]
+
+    # 日付一覧を取得（重複除去＆ソート）
+    dates = sorted(set(r['date'] for r in filtered))
+
+    # 時間帯一覧（10:00〜23:00想定）
+    time_slots = [f"{h:02}:00" for h in range(10, 24)]
+
+    # 表形式データ作成（時間×日付でstatusをセット）
+    table = {}
+    for time in time_slots:
+        table[time] = {}
+        for date in dates:
+            slot = next((r for r in filtered if r['date'] == date and r['time'] == time), None)
+            table[time][date] = slot['status'] if slot else 'none'
+
+    return render_template('table_schedule.html', staff=staff, dates=dates, table=table)
+
+
 @app.route('/reserve', methods=['POST'])
 def reserve():
     staff = request.form['staff']
