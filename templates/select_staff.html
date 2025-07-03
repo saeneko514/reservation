@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>スタッフを選んでください</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .container {
+      max-width: 400px;
+      margin: 30px auto;
+      text-align: center;
+    }
+    .card-list {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 20px;
+    }
+    .card {
+      display: inline-block;
+      background-color: #4fc3f7;
+      color: white;
+      padding: 20px 40px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .card:hover {
+      background-color: #38a9e6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>スタッフを選んでください</h1>
+    <div class="card-list">
+      <a class="card" href="/schedule?staff=A&userId={{ userId }}&name={{ name }}">A</a>
+      <a class="card" href="/schedule?staff=B&userId={{ userId }}&name={{ name }}">B</a>
+      <a class="card" href="/schedule?staff=C&userId={{ userId }}&name={{ name }}">C</a>
+    </div>
+  </div>
+</body>
+</html>
