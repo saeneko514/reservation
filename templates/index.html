@@ -7,12 +7,26 @@
 </head>
 <body>
   <div class="container">
-    <h1>スタッフを選んでください</h1>
-    <div class="card-list">
-      <a class="card" href="/schedule?staff=A">A</a>
-      <a class="card" href="/schedule?staff=B">B</a>
-      <a class="card" href="/schedule?staff=C">C</a>
-    </div>
+    <h1>予約システムへようこそ</h1>
+    <p>しばらくお待ちください…</p>
   </div>
+
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+    async function main() {
+      await liff.init({ liffId: "2007657386-9m3VArgZ" });
+      if (!liff.isLoggedIn()) {
+        liff.login();
+      } else {
+        const profile = await liff.getProfile();
+        const userId = profile.userId;
+        const name = profile.displayName;
+        // スタッフ選択ページにリダイレクト（userId, name付き）
+        window.location.href = `/select_staff?userId=${encodeURIComponent(userId)}&name=${encodeURIComponent(name)}`;
+      }
+    }
+    main();
+  </script>
 </body>
 </html>
