@@ -56,7 +56,7 @@ def schedule():
             else:
                 table[time][date] = "none"
 
-    return render_template('table_schedule.html',
+    return render_template('select_staff.html',
                            staff=staff, dates=dates, table=table,
                            userId=userId, name=name)
 
