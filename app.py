@@ -110,7 +110,9 @@ def reserve():
         return f"予約登録に失敗しました: {res.text}", 500
 
     # 予約完了後はスケジュール画面に戻る（同じユーザー情報付き）
-    return redirect(f"/schedule?staff={staff}&userId={userId}&name={name}")
+    return render_template("confirm_booking.html",
+                       name=name, staff=staff, date=date,
+                       time=time, registrationDate=now)
 
 if __name__ == '__main__':
     app.run(debug=True)
