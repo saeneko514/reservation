@@ -4,12 +4,31 @@
   <meta charset="UTF-8">
   <title>予約確認</title>
   <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      text-align: center;
+    }
+    .back-button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #4fc3f7;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <h1>予約が完了しました！</h1>
-    <p>{{ staff }} さんとの予約が完了しました。</p>
-    <p>日時：{{ datetime }}</p>
+    <p>{{ name }} さんの予約内容：</p>
+    <p><strong>スタッフ：</strong> {{ staff }}</p>
+    <p><strong>日付：</strong> {{ date }}</p>
+    <p><strong>時間：</strong> {{ time[:5] }}</p>
+    <p><strong>登録日時：</strong> {{ registrationDate }}</p>
     <a href="/" class="back-button">← ホームに戻る</a>
   </div>
 </body>
